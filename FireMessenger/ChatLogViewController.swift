@@ -17,7 +17,7 @@ class ChatLogController : UICollectionViewController, UICollectionViewDelegateFl
         didSet {
             navigationItem.title = friend?.name
             messages = friend?.messages?.allObjects as? [Message]
-            messages = messages?.sorted(by : {$0.date!.compare($1.date!) == .orderedDescending})
+            messages = messages?.sorted(by : {$0.date!.compare($1.date!) == .orderedAscending})
         }
     }
     
@@ -40,13 +40,29 @@ class ChatLogController : UICollectionViewController, UICollectionViewDelegateFl
         if let profileImageName = friend?.profileImageName {
             cell.profileImageView.image = UIImage(named: profileImageName)
         }
-        if let messageText = messages?[indexPath.item].text {
+        if let message = messages?[indexPath.item], let messageText = message.text {
             let size = CGSize(width: 250, height: 1000)
             let options = NSStringDrawingOptions.usesFontLeading.union(.usesLineFragmentOrigin)
             let estimatedFrame = NSString(string : messageText).boundingRect(with: size, options : options, attributes : [NSAttributedString.Key.font : UIFont.systemFont(ofSize: 18)], context : nil)
             
-            cell.messageTextView.frame = CGRect(x: 54,y: 0,width: estimatedFrame.width + 16,height: estimatedFrame.height + 20)
-            cell.textBubbleView.frame = CGRect(x: 46,y: 0,width: estimatedFrame.width + 16 + 54,height: estimatedFrame.height + 20)
+            if !message.isSender {
+                cell.messageTextView.frame = CGRect(x: 54,y: 0,width: estimatedFrame.width + 16,height: estimatedFrame.height + 18)
+                cell.textBubbleView.frame = CGRect(x: 48 - 10 , y: -4, width: estimatedFrame.width + 16 + 8 + 16,height: estimatedFrame.height + 18 + 4)
+                cell.profileImageView.isHidden = false
+//                cell.textBubbleView.backgroundColor = UIColor(white: 0.95, alpha : 1)
+                cell.messageTextView.textColor = .black
+                cell.bubbleImageView.tintColor = UIColor(white: 0.95, alpha : 1)
+                cell.bubbleImageView.image = UIImage(named: "bubble_gray")?.resizableImage(withCapInsets: UIEdgeInsets(top: 22,left: 26,bottom: 22,right: 26)).withRenderingMode(.alwaysTemplate)
+            } else {
+                cell.messageTextView.frame = CGRect(x: view.frame.width - estimatedFrame.width - 16 - 16 - 8,y: 0,width: estimatedFrame.width + 16,height: estimatedFrame.height + 18)
+                cell.textBubbleView.frame = CGRect(x: view.frame.width - estimatedFrame.width - 16 - 8 - 16 - 10, y: -4 ,width: estimatedFrame.width + 16 + 8 + 10,height: estimatedFrame.height + 18 + 6)
+                cell.profileImageView.isHidden = true
+//                cell.textBubbleView.backgroundColor = UIColor(red : 0, green: 137/255, blue : 249/255, alpha : 1)
+                cell.messageTextView.textColor = .white
+                cell.bubbleImageView.tintColor = UIColor(red : 0, green: 137/255, blue : 249/255, alpha : 1)
+                cell.bubbleImageView.image = UIImage(named: "bubble_blue")?.resizableImage(withCapInsets: UIEdgeInsets(top: 22,left: 26,bottom: 22,right: 26)).withRenderingMode(.alwaysTemplate)
+            }
+            
         }
         
         
@@ -75,7 +91,7 @@ class ChatLogMessageCell : BaseCell {
     
     let textBubbleView : UIView = {
         let view = UIView()
-        view.backgroundColor = UIColor(white: 0.95, alpha : 1)
+//        view.backgroundColor = UIColor(white: 0.95, alpha : 1)
         view.layer.cornerRadius = 15
         view.layer.masksToBounds = true
         return view
@@ -97,6 +113,13 @@ class ChatLogMessageCell : BaseCell {
         return imageView
     }()
     
+    let bubbleImageView : UIImageView = {
+        let imageView = UIImageView()
+        imageView.image = UIImage(named: "bubble_gray")?.resizableImage(withCapInsets: UIEdgeInsets(top: 22,left: 26,bottom: 22,right: 26)).withRenderingMode(.alwaysTemplate)
+        imageView.tintColor = UIColor(white: 0.90, alpha : 1)
+        return imageView
+    }()
+    
     override func setupViews() {
         super.setupViews()
         addSubview(textBubbleView)
@@ -106,6 +129,10 @@ class ChatLogMessageCell : BaseCell {
         addConstraintsWithFormat(format: "V:[v0(30)]|", views: profileImageView)
 //        addConstraintsWithFormat(format: "H:|[v0]|", views: messageTextView)
 //        addConstraintsWithFormat(format: "V:|[v0]|", views: messageTextView)
+        
+        textBubbleView.addSubview(bubbleImageView)
+        textBubbleView.addConstraintsWithFormat(format: "H:|[v0]|", views: bubbleImageView)
+        textBubbleView.addConstraintsWithFormat(format: "V:|[v0]|", views: bubbleImageView)
     }
     
 }

@@ -214,10 +214,11 @@ extension UIView {
 
 extension FriendsViewController {
     
-    func createMessageWithText(text : String, friend : Friend, minutesAgo : Double, context : NSManagedObjectContext) {
+    func createMessageWithText(text : String, friend : Friend, minutesAgo : Double, isSender : Bool = false, context : NSManagedObjectContext) {
         let dogMessage = NSEntityDescription.insertNewObject(forEntityName: "Message", into: context) as! Message
         dogMessage.friend = friend
         dogMessage.text = text
+        dogMessage.isSender = isSender
         dogMessage.date = Date().addingTimeInterval(-minutesAgo * 60)
     }
     
@@ -230,10 +231,12 @@ extension FriendsViewController {
             cat.name = "Catty Cat"
             cat.profileImageName = "cat"
 
-            createMessageWithText(text: "Heyy I'm cat", friend: cat, minutesAgo : 3, context: context)
-            createMessageWithText(text: "Hope you are doing good. I'm also doing good. ", friend: cat, minutesAgo : 2, context: context)
-            createMessageWithText(text: "Lorem ipsum dolor sit amet, consectetur adipiscing elit. Phasellus finibus semper arcu, eu scelerisque libero. Vivamus convallis, lacus sed venenatis ultrices, lacus augue ornare nibh, in placerat eros ex non nisl. Integer nulla quam, tincidunt eu mollis non, sodales a mi. Vivamus sagittis id justo eget ultrices. Maecenas non libero egestas, condimentum lacus eget, mollis justo. Aenean nulla tellus, tincidunt vitae ullamcorper quis, ullamcorper id augue. Etiam tincidunt velit dapibus nunc fringilla facilisis.", friend: cat, minutesAgo : 1, context: context)
-
+            for i in 0...50 {
+                createMessageWithText(text: "Heyy I'm cat", friend: cat, minutesAgo : Double(i + 3), context: context)
+                createMessageWithText(text: "Hope you are doing good. I'm also doing good. ", friend: cat, minutesAgo : Double(i + 2), context: context)
+                createMessageWithText(text: "Lorem ipsum dolor sit amet, consectetur adipiscing elit. Phasellus finibus semper arcu, eu scelerisque libero. Vivamus convallis, lacus sed venenatis ultrices, lacus augue ornare nibh, in placerat eros ex non nisl. Integer nulla quam, tincidunt eu mollis non, sodales a mi. Vivamus sagittis id justo eget ultrices. Maecenas non libero egestas, condimentum lacus eget, mollis justo. Aenean nulla tellus, tincidunt vitae ullamcorper quis, ullamcorper id augue. Etiam tincidunt velit dapibus nunc fringilla facilisis.", friend: cat, minutesAgo : Double(i + 1), context: context)
+                createMessageWithText(text: "Okay I got it", friend: cat, minutesAgo : Double(i + 1), isSender : true, context: context)
+            }
             let dog = NSEntityDescription.insertNewObject(forEntityName: "Friend", into: context) as! Friend
             dog.name = "Cute Dog"
             dog.profileImageName = "dog"
@@ -275,9 +278,7 @@ extension FriendsViewController {
         func loadData() {
             let delegate = UIApplication.shared.delegate as? AppDelegate
             if let context = delegate?.persistentContainer.viewContext {
-                
                 messages = []
-                
                 if let friendsRequest = fetchFriends() {
                     for friend in friendsRequest {
                         let fetchRequest : NSFetchRequest<Message> = Message.fetchRequest()
@@ -292,7 +293,6 @@ extension FriendsViewController {
                         }
                     }
                 }
-                
                 messages = messages?.sorted(by : {$0.date!.compare($1.date!) == .orderedDescending})
             }
         }
